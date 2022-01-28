@@ -21,7 +21,6 @@ function Calculator() {
 
     useEffect(() => {
 
-        console.log(process.env.REACT_APP_GIT_API_TOKEN);
         fetchProductsFromServer().then(data => {
             setSha(data.sha);
             setProductList(data.products);
