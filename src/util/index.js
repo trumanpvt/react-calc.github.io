@@ -28,7 +28,7 @@ export const fetchProductsFromServer = async () => {
 
 export const uploadNewProductsExcel = async (file, sha) => {
 
-    return await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+    await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
         owner: 'trumanpvt',
         repo: 'sber-calc',
         path: 'files/products.json',

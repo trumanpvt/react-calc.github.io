@@ -50,6 +50,8 @@ function Calculator() {
 
                 uploadNewProductsExcel(json, sha).then(() => {
                     console.log('success')
+                }).catch(e => {
+                    console.log(e)
                 })
             };
             reader.readAsArrayBuffer(e.target.files[0]);
