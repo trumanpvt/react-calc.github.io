@@ -1,10 +1,12 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import * as xlsx from "xlsx";
 import {Input, Select} from 'antd';
+
 import 'antd/dist/antd.css'
 import './index.scss';
 import {grade, risks} from "../../config";
+import {createGuid, fetchProductsFromServer, parseProductTypes, uploadNewProductsExcel} from "../../util";
 
 const {Option} = Select;
 
@@ -15,24 +17,24 @@ function Calculator() {
     const [products, setProducts] = useState([]);
     const [productList, setProductList] = useState([]);
     const [productTypes, setProductTypes] = useState([]);
+    const [sha, setSha] = useState();
 
-    const parseProductTypes = (json) => {
+    useEffect(() => {
 
-        const typesArray = [];
-
-        json.forEach(item => {
-
-            if (typesArray.indexOf(item.type) === -1) {
-                typesArray.push(item.type);
-            }
+        console.log(process.env.REACT_APP_GIT_API_TOKEN);
+        fetchProductsFromServer().then(data => {
+            setSha(data.sha);
+            setProductList(data.products);
+            const types = parseProductTypes(data.products);
+            setProductTypes(types);
         });
 
-        setProductTypes(typesArray);
-    }
+    }, []);
 
     const readUploadFile = (e) => {
         e.preventDefault();
         if (e.target.files) {
+
             const reader = new FileReader();
             reader.onload = (e) => {
                 const data = e.target.result;
@@ -42,19 +44,17 @@ function Calculator() {
                 const json = xlsx.utils.sheet_to_json(worksheet);
 
                 setProductList(json);
-                parseProductTypes(json);
+
+                const types = parseProductTypes(json);
+
+                setProductTypes(types)
+
+                uploadNewProductsExcel(json, sha).then(() => {
+                    console.log('success')
+                })
             };
             reader.readAsArrayBuffer(e.target.files[0]);
         }
-    }
-
-    const createGuid = () => {
-        function _p8(s) {
-            const p = (Math.random().toString(16) + "000000000").substr(2, 8);
-            return s ? "-" + p.substr(0, 4) + "-" + p.substr(4, 4) : p;
-        }
-
-        return _p8() + _p8(true) + _p8(true) + _p8();
     }
 
     const getRiskText = (portfolioRisk) => {
@@ -76,11 +76,9 @@ function Calculator() {
             riskText = 'Вы недополучаете потенциальный доход';
         }
 
-        return (
-            <div className={`calculator-main-body-numbers-text ${colorModifier}`}>
-                {riskText}
-            </div>
-        );
+        return (<div className={`calculator-main-body-numbers-text ${colorModifier}`}>
+            {riskText}
+        </div>);
     }
 
     const getPortfolioValues = (field) => {
@@ -111,19 +109,17 @@ function Calculator() {
 
         const portfolioRisk = getPortfolioValues('stress_scen');
 
-        return (
-            <div className="calculator-main-body-numbers-number">
-                <div className="calculator-main-body-numbers-number__title">
-                    Риск рейтинг
-                </div>
-                <div className="calculator-main-body-numbers-number__value">
-                    {`${portfolioRisk} из 5`}
-                </div>
-                <div className="calculator-main-body-numbers-text">
-                    {clientRisk ? getRiskText(portfolioRisk) : ''}
-                </div>
+        return (<div className="calculator-main-body-numbers-number">
+            <div className="calculator-main-body-numbers-number__title">
+                Риск рейтинг
             </div>
-        );
+            <div className="calculator-main-body-numbers-number__value">
+                {`${portfolioRisk} из 5`}
+            </div>
+            <div className="calculator-main-body-numbers-text">
+                {clientRisk ? getRiskText(portfolioRisk) : ''}
+            </div>
+        </div>);
     }
 
     const handleRiskChange = (value) => {
@@ -153,15 +149,12 @@ function Calculator() {
             const productFromList = productList.find(item => item.product_id === value);
 
             productsCopy[index] = {
-                ...productsCopy[index],
-                ...productFromList,
-                [field]: value,
+                ...productsCopy[index], ...productFromList, [field]: value,
             }
         } else {
 
             productsCopy[index] = {
-                ...productsCopy[index],
-                [field]: value,
+                ...productsCopy[index], [field]: value,
             }
         }
 
@@ -198,7 +191,7 @@ function Calculator() {
                         key={index}
                         value={item.product_id}
                     >
-                        {item.name} {item.isin || ''}
+                        {item.name} {(item.isin && item.isin !== 'NULL') || ''}
                     </Option>)
                 })}
             </Select>
@@ -225,19 +218,17 @@ function Calculator() {
 
     const renderProductRightSide = (product, index) => {
 
-        return (
-            <div className="calculator-products-right-body-product" key={index}>
-                <div className="calculator-products-right-body-product__value">
-                    {product['sum'] && totalSum ? (100 / (totalSum / product['sum'])).toFixed(2) + '%' : ''}
-                </div>
-                <div className="calculator-products-right-body-product__value">
-                    {product.stress_scen ? getGradeRiskValue(Math.abs(product.stress_scen * 100)) : ''}
-                </div>
-                <div className="calculator-products-right-body-product__value">
-                    {product.neutr_scen ? (product.neutr_scen * 100).toFixed(2) + '%' : ''}
-                </div>
+        return (<div className="calculator-products-right-body-product" key={index}>
+            <div className="calculator-products-right-body-product__value">
+                {product['sum'] && totalSum ? (100 / (totalSum / product['sum'])).toFixed(2) + '%' : ''}
             </div>
-        );
+            <div className="calculator-products-right-body-product__value">
+                {product.stress_scen ? getGradeRiskValue(Math.abs(product.stress_scen * 100)) : ''}
+            </div>
+            <div className="calculator-products-right-body-product__value">
+                {product.neutr_scen ? (product.neutr_scen * 100).toFixed(2) + '%' : ''}
+            </div>
+        </div>);
     }
 
     const handleProductRemove = (index) => {
