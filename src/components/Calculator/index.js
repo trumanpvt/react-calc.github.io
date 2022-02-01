@@ -75,6 +75,8 @@ function Calculator() {
             setUserPassword('');
 
             setIsUserModalVisible(false);
+
+            successMessage('Продукты успешно загружены с сервера');
         });
     }
 
@@ -114,12 +116,11 @@ function Calculator() {
 
                 const types = parseProductTypes(json);
 
-                setProductTypes(types)
+                setProductTypes(types);
 
                 if (sha) {
 
-                    uploadExcel(json, sha)
-
+                    uploadExcel(json, sha);
                 } else {
 
                     fetchProductsFromServer(apiKey).then(data => {
