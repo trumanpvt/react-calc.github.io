@@ -1,11 +1,26 @@
 // export const apiToken = process.env.REACT_APP_GIT_API_TOKEN;
 
+export const currencies = [
+    {
+        name: 'RUB',
+        suffix: '₽'
+    },
+    {
+        name: 'USD',
+        suffix: '$'
+    },
+    {
+        name: 'EUR',
+        suffix: '€'
+    },
+];
+
 export const grade = [
-    { min: 0, max: 5, value: 1, },
-    { min: 5, max: 10, value: 2, },
-    { min: 10, max: 20, value: 3, },
-    { min: 20, max: 30, value: 4, },
-    { min: 30, max: 1000, value: 5, }
+    {min: 0, max: 5, value: 1,},
+    {min: 5, max: 10, value: 2,},
+    {min: 10, max: 20, value: 3,},
+    {min: 20, max: 30, value: 4,},
+    {min: 30, max: 1000, value: 5,}
 ];
 
 export const risks = [

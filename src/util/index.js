@@ -9,6 +9,23 @@ const b64_to_utf8 = (str) => {
     return decodeURIComponent(escape(window.atob(str)));
 }
 
+export const getCurrencyRates = async () => {
+
+    const url = 'https://www.cbr-xml-daily.ru/daily_json.js';
+
+    return fetch(url).then(res => {
+        return res.json();
+    });
+}
+
+export const parseRatesJson = (valutes) => {
+
+    return {
+        USD: valutes.USD ? valutes.USD.Value : 0,
+        EUR: valutes.EUR ? valutes.EUR.Value : 0,
+    }
+}
+
 export const fetchProductsFromServer = async (apiToken) => {
 
     const octokit = new Octokit({auth: apiToken});
@@ -75,7 +92,15 @@ export const decryptKey = (password, mode) => {
         encryptedKey = process.env.REACT_APP_GIT_API_TOKEN;
     }
 
-    const apiKey = CryptoJS.AES.decrypt(encryptedKey, password).toString(CryptoJS.enc.Utf8);
+    let apiKey;
+
+    try {
+
+        apiKey = CryptoJS.AES.decrypt(encryptedKey, password).toString(CryptoJS.enc.Utf8);
+    } catch (e) {
+
+        console.log(e)
+    }
 
     return apiKey;
 }

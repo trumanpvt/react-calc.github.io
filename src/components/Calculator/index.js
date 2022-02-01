@@ -1,12 +1,20 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import * as xlsx from "xlsx";
-import {Input, Modal, Select} from 'antd';
+import {Input, message, Modal, Select} from 'antd';
 
 import 'antd/dist/antd.css'
 import './index.scss';
-import {grade, risks} from "../../config";
-import {createGuid, decryptKey, fetchProductsFromServer, parseProductTypes, uploadNewProductsExcel} from "../../util";
+import {currencies, grade, risks} from "../../config";
+import {
+    createGuid,
+    decryptKey,
+    fetchProductsFromServer,
+    getCurrencyRates,
+    parseProductTypes,
+    parseRatesJson,
+    uploadNewProductsExcel
+} from "../../util";
 
 import uploadIcon from '../../assets/images/upload-file-icon.svg'
 import downloadIcon from '../../assets/images/download-icon.svg'
@@ -25,19 +33,22 @@ function Calculator() {
     const [adminPassword, setAdminPassword] = useState('');
     const [isUserModalVisible, setIsUserModalVisible] = useState(false);
     const [isAdminModalVisible, setIsAdminModalVisible] = useState(false);
-    // const [isFileUploadActive, setIsFileUploadActive] = useState(false);
     const [apiKey, setApiKey] = useState('');
+    const [currencyRates, setCurrencyRates] = useState({});
 
-    // useEffect(() => {
-    //
-    //     fetchProductsFromServer().then(data => {
-    //         setSha(data.sha);
-    //         setProductList(data.products);
-    //         const types = parseProductTypes(data.products);
-    //         setProductTypes(types);
-    //     });
-    //
-    // }, []);
+    useEffect(() => {
+
+        getCurrencyRates().then(json => {
+
+            if (json.Valute) {
+
+                const currencyRatesParsed = parseRatesJson(json.Valute);
+
+                setCurrencyRates(currencyRatesParsed);
+            }
+        })
+
+    }, []);
 
     const handleGetProducts = () => {
 
@@ -48,7 +59,10 @@ function Calculator() {
 
         const key = decryptKey(userPassword, 'user');
 
-        if (!key) return null;
+        if (!key) {
+            errorMessage('Неверный пароль');
+            return null;
+        }
 
         fetchProductsFromServer(key).then(data => {
 
@@ -68,9 +82,11 @@ function Calculator() {
 
         const key = decryptKey(adminPassword, 'admin');
 
-        if (!key) return null;
+        if (!key) {
+            errorMessage('Неверный пароль');
+            return null;
+        }
 
-        // setIsFileUploadActive(true);
         setIsAdminModalVisible(false);
 
         return setApiKey(key);
@@ -100,14 +116,34 @@ function Calculator() {
 
                 setProductTypes(types)
 
-                uploadNewProductsExcel(json, sha).then(() => {
-                    console.log('success')
-                }).catch(e => {
-                    console.log(e)
-                })
+                if (sha) {
+
+                    uploadExcel(json, sha)
+
+                } else {
+
+                    fetchProductsFromServer(apiKey).then(data => {
+
+                        setSha(data.sha);
+
+                        uploadExcel(json, data.sha);
+                    })
+                }
             };
+
             reader.readAsArrayBuffer(e.target.files[0]);
         }
+    }
+
+    const uploadExcel = (json, sha) => {
+
+        uploadNewProductsExcel(json, sha, apiKey).then(() => {
+
+            successMessage('Список продуктов успешно загружен на сервер');
+        }).catch(e => {
+
+            errorMessage(e);
+        })
     }
 
     const getRiskText = (portfolioRisk) => {
@@ -134,7 +170,33 @@ function Calculator() {
         </div>);
     }
 
-    const getPortfolioValues = (field) => {
+    const getPortfolioYield = (currency) => {
+
+        const productsWithCurrency = products.filter(product => product.currency === currency);
+
+        if (productsWithCurrency.length === 0 || !totalSum) {
+
+            return 0;
+        } else {
+
+            const productsSum = productsWithCurrency.reduce((accumulator, product) => {
+
+                const productValue = product['sum'] && product['neutr_scen'] ? product['sum'] * product['neutr_scen'] : 0;
+
+                return accumulator + productValue;
+            }, 0);
+
+            if (currency === 'RUB') {
+
+                return (productsSum / totalSum * 100).toFixed(2);
+            } else {
+
+                return (productsSum / (totalSum / currencyRates[currency]) * 100).toFixed(2);
+            }
+        }
+    }
+
+    const calcPortfolioRisk = () => {
 
         if (products.length === 0 || !totalSum) {
 
@@ -143,24 +205,35 @@ function Calculator() {
 
             const productsSum = products.reduce((accumulator, product) => {
 
-                const productValue = product['sum'] && product[field] ? product['sum'] * product[field] : 0;
+                let productValue;
 
+                if (product['sum'] && product['stress_scen']) {
+
+                    let productSum;
+
+                    if (product['currency'] && product['currency'] !== 'RUB') {
+
+                        productSum = product['sum'] * currencyRates[product['currency']];
+                    } else {
+
+                        productSum = product['sum'];
+                    }
+
+                    productValue = productSum * product['stress_scen'];
+                } else {
+
+                    productValue = 0;
+                }
                 return accumulator + productValue;
             }, 0);
 
-            if (field === 'stress_scen') {
-
-                return getGradeRiskValue(Math.abs(productsSum / totalSum) * 100);
-            } else {
-
-                return (productsSum / totalSum * 100).toFixed(2);
-            }
+            return getGradeRiskValue(Math.abs(productsSum / totalSum) * 100);
         }
     }
 
     const getPortfolioRisk = () => {
 
-        const portfolioRisk = getPortfolioValues('stress_scen');
+        const portfolioRisk = calcPortfolioRisk();
 
         return (<div className="calculator-main-body-numbers-number">
             <div className="calculator-main-body-numbers-number__title">
@@ -191,7 +264,7 @@ function Calculator() {
         setProducts(productsCopy);
     }
 
-    const handleProductChange = (value, option, product, field) => {
+    const handleProductChange = (value, product, field) => {
 
         const productsCopy = [...products];
 
@@ -207,7 +280,8 @@ function Calculator() {
         } else {
 
             productsCopy[index] = {
-                ...productsCopy[index], [field]: value,
+                ...productsCopy[index],
+                [field]: value,
             }
         }
 
@@ -224,10 +298,16 @@ function Calculator() {
             })
         } else products = productList;
 
+        const productCurrency = currencies.find(currency => currency.name === product.currency);
+
+        let currencySuffix;
+
+        if (productCurrency) currencySuffix = productCurrency.suffix;
+
         return (<div className="calculator-products-left-body-product" key={index}>
             <Select
                 className="calculator-products-left-body-product__type"
-                onChange={(value, option) => handleProductChange(value, option, product, 'type')}
+                onChange={(value) => handleProductChange(value, product, 'type')}
                 dropdownMatchSelectWidth={false}
             >
                 {productTypes.map((item, index) => {
@@ -235,8 +315,18 @@ function Calculator() {
                 })}
             </Select>
             <Select
+                className="calculator-products-left-body-product__currency"
+                onChange={(value) => handleProductChange(value, product, 'currency')}
+                value={product.currency}
+                dropdownMatchSelectWidth={false}
+            >
+                {currencies.map((item, index) => {
+                    return <Option key={index} value={item.name}>{item.name}</Option>
+                })}
+            </Select>
+            <Select
                 className="calculator-products-left-body-product__name"
-                onChange={(value, option) => handleProductChange(value, option, product, 'product_id')}
+                onChange={(value) => handleProductChange(value, product, 'product_id')}
                 dropdownMatchSelectWidth={false}
             >
                 {products.map((item, index) => {
@@ -250,10 +340,10 @@ function Calculator() {
             </Select>
             <Input
                 className="calculator-products-left-body-product__sum"
-                suffix='₽'
+                suffix={currencySuffix}
                 type="number"
                 value={product['sum']}
-                onChange={e => handleProductChange(e.target.value, null, product, 'sum')}
+                onChange={e => handleProductChange(e.target.value, product, 'sum')}
             />
         </div>)
     }
@@ -293,6 +383,14 @@ function Calculator() {
         setProducts(productsCopy);
     }
 
+    const successMessage = (text) => {
+        message.success(text).then(() => null);
+    };
+
+    const errorMessage = (text) => {
+        message.error(text).then(() => null);
+    };
+
     const renderProductRemoveBtn = (product, index) => {
 
         return (<div
@@ -317,7 +415,8 @@ function Calculator() {
                         />
                     </div>
                 )
-                : <img className="calculator-header__upload-icon" src={uploadIcon} alt={null} onClick={() => setIsAdminModalVisible(true)}/>
+                : <img className="calculator-header__upload-icon" src={uploadIcon} alt={null}
+                       onClick={() => setIsAdminModalVisible(true)}/>
             }
         </div>
         <div className="calculator-main">
@@ -352,7 +451,13 @@ function Calculator() {
                             Доходность
                         </div>
                         <div className="calculator-main-body-numbers-number__value">
-                            {getPortfolioValues('neutr_scen')}%
+                            RUB - {getPortfolioYield('RUB')}%
+                        </div>
+                        <div className="calculator-main-body-numbers-number__value">
+                            USD - {getPortfolioYield('USD')}%
+                        </div>
+                        <div className="calculator-main-body-numbers-number__value">
+                            EUR - {getPortfolioYield('EUR')}%
                         </div>
                     </div>
                 </div>
@@ -376,6 +481,7 @@ function Calculator() {
             <div className="calculator-products-left">
                 <div className="calculator-products-left-header">
                     <div className="calculator-products-left-header__type">Тип</div>
+                    <div className="calculator-products-left-header__currency">Валюта</div>
                     <div className="calculator-products-left-header__name">Название</div>
                     <div className="calculator-products-left-header__sum">Сумма</div>
                 </div>
@@ -404,6 +510,7 @@ function Calculator() {
             <Input
                 className="calculator-main-body-input__input"
                 value={isUserModalVisible ? userPassword : adminPassword}
+                type='password'
                 onChange={isUserModalVisible ? (e => setUserPassword(e.target.value)) : (e => setAdminPassword(e.target.value))}
             />
         </Modal>
