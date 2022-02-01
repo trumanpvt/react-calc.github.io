@@ -1,12 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 
 import * as xlsx from "xlsx";
-import {Input, Select} from 'antd';
+import {Input, Modal, Select} from 'antd';
 
 import 'antd/dist/antd.css'
 import './index.scss';
 import {grade, risks} from "../../config";
-import {createGuid, fetchProductsFromServer, parseProductTypes, uploadNewProductsExcel} from "../../util";
+import {createGuid, decryptKey, fetchProductsFromServer, parseProductTypes, uploadNewProductsExcel} from "../../util";
+
+import uploadIcon from '../../assets/images/upload-file-icon.svg'
+import downloadIcon from '../../assets/images/download-icon.svg'
 
 const {Option} = Select;
 
@@ -18,17 +21,66 @@ function Calculator() {
     const [productList, setProductList] = useState([]);
     const [productTypes, setProductTypes] = useState([]);
     const [sha, setSha] = useState();
+    const [userPassword, setUserPassword] = useState('');
+    const [adminPassword, setAdminPassword] = useState('');
+    const [isUserModalVisible, setIsUserModalVisible] = useState(false);
+    const [isAdminModalVisible, setIsAdminModalVisible] = useState(false);
+    // const [isFileUploadActive, setIsFileUploadActive] = useState(false);
+    const [apiKey, setApiKey] = useState('');
 
-    useEffect(() => {
+    // useEffect(() => {
+    //
+    //     fetchProductsFromServer().then(data => {
+    //         setSha(data.sha);
+    //         setProductList(data.products);
+    //         const types = parseProductTypes(data.products);
+    //         setProductTypes(types);
+    //     });
+    //
+    // }, []);
 
-        fetchProductsFromServer().then(data => {
+    const handleGetProducts = () => {
+
+        setIsUserModalVisible(true);
+    }
+
+    const handleOkUserPassword = () => {
+
+        const key = decryptKey(userPassword, 'user');
+
+        if (!key) return null;
+
+        fetchProductsFromServer(key).then(data => {
+
             setSha(data.sha);
             setProductList(data.products);
+
             const types = parseProductTypes(data.products);
             setProductTypes(types);
-        });
 
-    }, []);
+            setUserPassword('');
+
+            setIsUserModalVisible(false);
+        });
+    }
+
+    const handleOkAdminPassword = () => {
+
+        const key = decryptKey(adminPassword, 'admin');
+
+        if (!key) return null;
+
+        // setIsFileUploadActive(true);
+        setIsAdminModalVisible(false);
+
+        return setApiKey(key);
+    }
+
+    const handleCloseModal = (mode) => {
+
+        if (mode === 'user') setIsUserModalVisible(false);
+        else setIsAdminModalVisible(false);
+    }
 
     const readUploadFile = (e) => {
         e.preventDefault();
@@ -255,14 +307,18 @@ function Calculator() {
             <div className="calculator-header__title">
                 Расчет
             </div>
-            <div className="calculator-header-upload">
-                <Input
-                    type="file"
-                    name="upload"
-                    id="upload"
-                    onChange={readUploadFile}
-                />
-            </div>
+            {apiKey ? (
+                    <div className="calculator-header-upload">
+                        <Input
+                            type="file"
+                            name="upload"
+                            id="upload"
+                            onChange={readUploadFile}
+                        />
+                    </div>
+                )
+                : <img className="calculator-header__upload-icon" src={uploadIcon} alt={null} onClick={() => setIsAdminModalVisible(true)}/>
+            }
         </div>
         <div className="calculator-main">
             <div className="calculator-main__header">Параметры</div>
@@ -303,6 +359,12 @@ function Calculator() {
             </div>
         </div>
         <div className="calculator-add-btn-container">
+            <div className="calculator-add-btn" onClick={handleGetProducts}>
+                <img className="calculator-add-btn__icon" src={downloadIcon} alt={null}/>
+                <div className="calculator-add-btn__text">
+                    Загрузить продукты с сервера
+                </div>
+            </div>
             <div className="calculator-add-btn" onClick={handleAddProduct}>
                 <div className="calculator-add-btn__cross"/>
                 <div className="calculator-add-btn__text">
@@ -335,6 +397,16 @@ function Calculator() {
                 {products.map(renderProductRemoveBtn)}
             </div>
         </div>
+        <Modal visible={isUserModalVisible || isAdminModalVisible}
+               onOk={isUserModalVisible ? handleOkUserPassword : handleOkAdminPassword}
+               onCancel={isUserModalVisible ? () => handleCloseModal('user') : () => handleCloseModal('admin')}>
+            <div className="calculator-products-right-header__title">Введите пароль</div>
+            <Input
+                className="calculator-main-body-input__input"
+                value={isUserModalVisible ? userPassword : adminPassword}
+                onChange={isUserModalVisible ? (e => setUserPassword(e.target.value)) : (e => setAdminPassword(e.target.value))}
+            />
+        </Modal>
     </div>);
 }
 

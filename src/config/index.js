@@ -1,4 +1,4 @@
-export const apiToken = process.env.REACT_APP_GIT_API_TOKEN;
+// export const apiToken = process.env.REACT_APP_GIT_API_TOKEN;
 
 export const grade = [
     { min: 0, max: 5, value: 1, },

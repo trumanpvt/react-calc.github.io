@@ -1,7 +1,5 @@
 import {Octokit} from "@octokit/core";
-import {apiToken} from "../config";
-
-const octokit = new Octokit({auth: apiToken});
+import CryptoJS from "crypto-js";
 
 const utf8_to_b64 = (str) => {
     return window.btoa(unescape(encodeURIComponent(str)));
@@ -11,7 +9,9 @@ const b64_to_utf8 = (str) => {
     return decodeURIComponent(escape(window.atob(str)));
 }
 
-export const fetchProductsFromServer = async () => {
+export const fetchProductsFromServer = async (apiToken) => {
+
+    const octokit = new Octokit({auth: apiToken});
 
     const {data} = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
         owner: 'trumanpvt',
@@ -26,7 +26,9 @@ export const fetchProductsFromServer = async () => {
     }
 }
 
-export const uploadNewProductsExcel = async (file, sha) => {
+export const uploadNewProductsExcel = async (file, sha, apiToken) => {
+
+    const octokit = new Octokit({auth: apiToken});
 
     await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
         owner: 'trumanpvt',
@@ -59,4 +61,21 @@ export const parseProductTypes = (json) => {
     });
 
     return typesArray;
+}
+
+export const decryptKey = (password, mode) => {
+
+    let encryptedKey;
+
+    if (mode === 'user') {
+
+        encryptedKey = process.env.REACT_APP_GIT_API_TOKEN_GET;
+    } else {
+
+        encryptedKey = process.env.REACT_APP_GIT_API_TOKEN;
+    }
+
+    const apiKey = CryptoJS.AES.decrypt(encryptedKey, password).toString(CryptoJS.enc.Utf8);
+
+    return apiKey;
 }

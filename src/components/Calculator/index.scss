@@ -15,6 +15,11 @@
       color: #262626;
     }
 
+    &__upload-icon {
+      width: 32px;
+      cursor: pointer;
+    }
+
     .calculator-header-upload {
       display: flex;
     }
@@ -121,7 +126,7 @@
   .calculator-add-btn-container {
     margin: 30px 0;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
 
     .calculator-add-btn {
       display: flex;
@@ -130,7 +135,7 @@
 
       &__cross {
         font-size: 30px;
-        color: #653CAD;
+        //color: #653CAD;
 
         &:after {
           display: inline-block;
@@ -141,6 +146,10 @@
       &__text {
         margin-left: 10px;
         font-size: 15px;
+      }
+
+      &__icon {
+        width: 32px;
       }
     }
   }
@@ -242,7 +251,7 @@
         align-items: center;
         margin: 8px 0;
         font-size: 40px;
-        color: #653CAD;
+        //color: #653CAD;
 
         &:after {
           display: inline-block;
