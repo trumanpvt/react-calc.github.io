@@ -293,10 +293,28 @@ function Calculator() {
 
         let products;
 
-        if (product.type) {
-            products = productList.filter(item => {
-                return item.type === product.type;
-            })
+        if (product.type || product.currency) {
+
+            if (product.type) {
+
+                products = productList.filter(item => {
+                    return item.type === product.type;
+                })
+
+                products = products.filter(item => {
+                    return item.currency === product.currency;
+                })
+            } else if (product.type) {
+
+                products = productList.filter(item => {
+                    return item.type === product.type;
+                })
+            } else {
+
+                products = productList.filter(item => {
+                    return item.currency === product.currency;
+                })
+            }
         } else products = productList;
 
         const productCurrency = currencies.find(currency => currency.name === product.currency);
@@ -318,7 +336,6 @@ function Calculator() {
             <Select
                 className="calculator-products-left-body-product__currency"
                 onChange={(value) => handleProductChange(value, product, 'currency')}
-                value={product.currency}
                 dropdownMatchSelectWidth={false}
             >
                 {currencies.map((item, index) => {
@@ -377,17 +394,19 @@ function Calculator() {
 
     const renderProductRightSide = (product, index) => {
 
-        return (<div className="calculator-products-right-body-product" key={index}>
-            <div className="calculator-products-right-body-product__value">
-                {product['sum'] && totalSum && product['currency'] ? getProductPercentage(product['sum'], product['currency'], totalSum) + '%' : ''}
+        return (
+            <div className="calculator-products-right-body-product" key={index}>
+                <div className="calculator-products-right-body-product__value">
+                    {product['sum'] && totalSum && product['currency'] ? getProductPercentage(product['sum'], product['currency'], totalSum) + '%' : ''}
+                </div>
+                <div className="calculator-products-right-body-product__value">
+                    {product.stress_scen ? getGradeRiskValue(Math.abs(product.stress_scen * 100)) : ''}
+                </div>
+                <div className="calculator-products-right-body-product__value">
+                    {product.neutr_scen ? (product.neutr_scen * 100).toFixed(2) + '%' : ''}
+                </div>
             </div>
-            <div className="calculator-products-right-body-product__value">
-                {product.stress_scen ? getGradeRiskValue(Math.abs(product.stress_scen * 100)) : ''}
-            </div>
-            <div className="calculator-products-right-body-product__value">
-                {product.neutr_scen ? (product.neutr_scen * 100).toFixed(2) + '%' : ''}
-            </div>
-        </div>);
+        );
     }
 
     const handleProductRemove = (index) => {
