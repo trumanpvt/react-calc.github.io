@@ -359,11 +359,26 @@ function Calculator() {
         return null;
     }
 
+    const getProductPercentage = (productSum, currency, totalSum) => {
+
+        let productSumConverted;
+
+        if (currency === 'RUB') {
+
+            productSumConverted = productSum;
+        } else {
+
+            productSumConverted = productSum * currencyRates[currency];
+        }
+
+        return (100 / (totalSum / productSumConverted)).toFixed(2)
+    }
+
     const renderProductRightSide = (product, index) => {
 
         return (<div className="calculator-products-right-body-product" key={index}>
             <div className="calculator-products-right-body-product__value">
-                {product['sum'] && totalSum ? (100 / (totalSum / product['sum'])).toFixed(2) + '%' : ''}
+                {product['sum'] && totalSum && product['currency'] ? getProductPercentage(product['sum'], product['currency'], totalSum) + '%' : ''}
             </div>
             <div className="calculator-products-right-body-product__value">
                 {product.stress_scen ? getGradeRiskValue(Math.abs(product.stress_scen * 100)) : ''}
