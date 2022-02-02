@@ -268,6 +268,8 @@ function Calculator() {
 
     const calcMaxSumForProduct = (value, product) => {
 
+        const valueRub = product['currency'] === 'RUB' ? value : value * currencyRates[product['currency']];
+
         const otherProducts = products.filter(item => {
 
             return item.guid !== product.guid;
@@ -282,9 +284,9 @@ function Calculator() {
 
         const sumDiff = totalSum - totalProductsSum;
 
-        if (sumDiff < value) return value - sumDiff;
+        if (sumDiff < valueRub) value = product['currency'] === 'RUB' ? sumDiff : sumDiff / currencyRates[product['currency']];
 
-        return value;
+        return Math.floor(value);
     }
 
     const handleProductChange = (value, product, field) => {
