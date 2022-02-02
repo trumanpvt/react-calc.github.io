@@ -265,6 +265,27 @@ function Calculator() {
         setProducts(productsCopy);
     }
 
+    const calcMaxSumForProduct = (value, product) => {
+
+        const otherProducts = products.filter(item => {
+
+            return item.guid !== product.guid;
+        });
+
+        const totalProductsSum = otherProducts.reduce((accumulator, item) => {
+
+            if (item['currency'] === 'RUB') return accumulator + item['sum'];
+
+            return accumulator + (item['sum'] * currencyRates[item['currency']]);
+        }, 0);
+
+        const sumDiff = totalSum - totalProductsSum;
+
+        if (sumDiff < value) return value - sumDiff;
+
+        return value;
+    }
+
     const handleProductChange = (value, product, field) => {
 
         const productsCopy = [...products];
@@ -277,6 +298,12 @@ function Calculator() {
 
             productsCopy[index] = {
                 ...productsCopy[index], ...productFromList, [field]: value,
+            }
+        } else if (field === 'sum') {
+
+            productsCopy[index] = {
+                ...productsCopy[index],
+                [field]: calcMaxSumForProduct(parseFloat(value), product),
             }
         } else {
 
