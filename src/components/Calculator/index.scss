@@ -123,13 +123,14 @@
     }
   }
 
-  .calculator-add-btn-container {
+  .calculator-buttons-container {
     margin: 30px 0;
     padding: 0 28px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 
-    .calculator-add-btn {
+    .calculator-buttons {
       display: flex;
       align-items: center;
       cursor: pointer;

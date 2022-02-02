@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 
 import * as xlsx from "xlsx";
-import {Input, message, Modal, Select} from 'antd';
+import {Checkbox, Input, message, Modal, Select} from 'antd';
 
 import 'antd/dist/antd.css'
 import './index.scss';
@@ -35,6 +35,7 @@ function Calculator() {
     const [isAdminModalVisible, setIsAdminModalVisible] = useState(false);
     const [apiKey, setApiKey] = useState('');
     const [currencyRates, setCurrencyRates] = useState({});
+    const [qualMode, setQualMode] = useState(false);
 
     useEffect(() => {
 
@@ -316,33 +317,38 @@ function Calculator() {
         setProducts(productsCopy);
     }
 
-    const renderProductLeftSide = (product, index) => {
+    const filterProducts = (product) => {
 
         let products;
 
-        if (product.type || product.currency) {
+        if (!qualMode) {
 
-            if (product.type) {
+            products = productList.filter(item => !item['qual']);
+        } else {
 
-                products = productList.filter(item => {
-                    return item.type === product.type;
-                })
+            products = productList;
+        }
 
-                products = products.filter(item => {
-                    return item.currency === product.currency;
-                })
-            } else if (product.type) {
+        if (product.type) {
 
-                products = productList.filter(item => {
-                    return item.type === product.type;
-                })
-            } else {
+            products = products.filter(item => {
+                return item.type === product.type;
+            })
+        }
 
-                products = productList.filter(item => {
-                    return item.currency === product.currency;
-                })
-            }
-        } else products = productList;
+        if (product.currency) {
+
+            products = products.filter(item => {
+                return item.currency === product.currency;
+            })
+        }
+
+        return products;
+    }
+
+    const renderProductLeftSide = (product, index) => {
+
+        const products = filterProducts(product);
 
         const productCurrency = currencies.find(currency => currency.name === product.currency);
 
@@ -350,47 +356,50 @@ function Calculator() {
 
         if (productCurrency) currencySuffix = productCurrency.suffix;
 
-        return (<div className="calculator-products-left-body-product" key={index}>
-            <Select
-                className="calculator-products-left-body-product__type"
-                onChange={(value) => handleProductChange(value, product, 'type')}
-                dropdownMatchSelectWidth={false}
-            >
-                {productTypes.map((item, index) => {
-                    return <Option key={index} value={item}>{item}</Option>
-                })}
-            </Select>
-            <Select
-                className="calculator-products-left-body-product__currency"
-                onChange={(value) => handleProductChange(value, product, 'currency')}
-                dropdownMatchSelectWidth={false}
-            >
-                {currencies.map((item, index) => {
-                    return <Option key={index} value={item.name}>{item.name}</Option>
-                })}
-            </Select>
-            <Select
-                className="calculator-products-left-body-product__name"
-                onChange={(value) => handleProductChange(value, product, 'product_id')}
-                dropdownMatchSelectWidth={false}
-            >
-                {products.map((item, index) => {
-                    return (<Option
-                        key={index}
-                        value={item.product_id}
-                    >
-                        {item.name} {(item.isin && item.isin !== 'NULL') || ''}
-                    </Option>)
-                })}
-            </Select>
-            <Input
-                className="calculator-products-left-body-product__sum"
-                suffix={currencySuffix}
-                type="number"
-                value={product['sum']}
-                onChange={e => handleProductChange(e.target.value, product, 'sum')}
-            />
-        </div>)
+        return (
+            <div className="calculator-products-left-body-product" key={index}>
+                <Select
+                    className="calculator-products-left-body-product__type"
+                    onChange={(value) => handleProductChange(value, product, 'type')}
+                    dropdownMatchSelectWidth={false}
+                >
+                    {productTypes.map((item, index) => {
+                        return <Option key={index} value={item}>{item}</Option>
+                    })}
+                </Select>
+                <Select
+                    className="calculator-products-left-body-product__currency"
+                    onChange={(value) => handleProductChange(value, product, 'currency')}
+                    dropdownMatchSelectWidth={false}
+                >
+                    {currencies.map((item, index) => {
+                        return <Option key={index} value={item.name}>{item.name}</Option>
+                    })}
+                </Select>
+                <Select
+                    className="calculator-products-left-body-product__name"
+                    onChange={(value) => handleProductChange(value, product, 'product_id')}
+                    dropdownMatchSelectWidth={false}
+                >
+                    {products.map((item, index) => {
+
+                        return (<Option
+                            key={index}
+                            value={item.product_id}
+                        >
+                            {item.name} {(item.isin && item.isin !== 'NULL') || ''}
+                        </Option>)
+                    })}
+                </Select>
+                <Input
+                    className="calculator-products-left-body-product__sum"
+                    suffix={currencySuffix}
+                    type="number"
+                    value={product['sum']}
+                    onChange={e => handleProductChange(e.target.value, product, 'sum')}
+                />
+            </div>
+        );
     }
 
     const getGradeRiskValue = (stressScen) => {
@@ -525,16 +534,19 @@ function Calculator() {
                 </div>
             </div>
         </div>
-        <div className="calculator-add-btn-container">
-            <div className="calculator-add-btn" onClick={handleGetProducts}>
-                <img className="calculator-add-btn__icon" src={downloadIcon} alt={null}/>
-                <div className="calculator-add-btn__text">
+        <div className="calculator-buttons-container">
+            <div className="calculator-buttons" onClick={handleGetProducts}>
+                <img className="calculator-buttons__icon" src={downloadIcon} alt={null}/>
+                <div className="calculator-buttons__text">
                     Загрузить продукты с сервера
                 </div>
             </div>
-            <div className="calculator-add-btn" onClick={handleAddProduct}>
-                <div className="calculator-add-btn__cross"/>
-                <div className="calculator-add-btn__text">
+            <div className="calculator-buttons-checkbox">
+                <Checkbox checked={qualMode} onChange={() => setQualMode(!qualMode)}>Режим КИ</Checkbox>
+            </div>
+            <div className="calculator-buttons" onClick={handleAddProduct}>
+                <div className="calculator-buttons__cross"/>
+                <div className="calculator-buttons__text">
                     Добавить продукт
                 </div>
             </div>
