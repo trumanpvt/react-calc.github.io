@@ -516,12 +516,10 @@ function Calculator() {
                 </div>
                 <div className="calculator-header-controls">
                     <PDFDownloadLink document={handleCreatePdf()} fileName="briefcase.pdf">
-                        {/*{({ blob, url, loading, error }) => (loading ? 'Loading document...' : 'Download now!')}*/}
                         <img
                             className="calculator-header-controls__icon"
                             src={pdfIcon}
                             alt={null}
-                            // onClick={handleCreatePdf}
                         />
                     </PDFDownloadLink>
                     {apiKey ? (
