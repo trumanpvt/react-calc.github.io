@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {Document, Font, Page, StyleSheet, Text, View} from '@react-pdf/renderer'
+import {Document, Font, Page, Text, View} from '@react-pdf/renderer'
 
 import 'antd/dist/antd.css'
 import {currencies, risks} from "../../config";
@@ -33,17 +33,34 @@ function PdfBriefcase({
 
         return (
             <View>
-                <Text style={styles.mainBodyNumbersNumberValue}>
+                <Text style={styles.mainBodyInfoValue}>
                     {`${portfolioRisk} из 5`}
                 </Text>
                 <Text
-                    style={[styles.mainBodyNumbersNumberRiskText, `styles.mainBodyNumbersNumberRiskText${textAndColor.colorModifier}`]}
+                    style={[styles.mainBodyInfoRiskText, styles[`mainBodyInfoRiskText${textAndColor.colorModifier}`]]}
                 >
                     {textAndColor.riskText}
                 </Text>
             </View>
         );
     }
+
+    // const formatProductType = (type) => {
+    //
+    //     return (
+    //         <View style={styles.productsProductValueContainer}>
+    //             {type ? type.split('.').map(item => {
+    //                     return (
+    //                         <Text style={styles.productsProductValue}>
+    //                             {item}
+    //                         </Text>
+    //                     );
+    //                 })
+    //                 : null
+    //             }
+    //         </View>
+    //     );
+    // }
 
     const renderProduct = (product, index) => {
 
@@ -58,7 +75,7 @@ function PdfBriefcase({
                 <Text style={styles.productsProductType}>
                     {product.type}
                 </Text>
-                <Text style={styles.productsProductCurrency}>
+                <Text style={styles.productsProductValue}>
                     {product.currency}
                 </Text>
                 <Text style={styles.productsProductName}>
@@ -98,37 +115,35 @@ function PdfBriefcase({
                             <Text
                                 style={styles.mainBodyInfoValue}>{clientRisk ? risks[clientRisk - 1].title : ''}</Text>
                         </View>
-                        <View style={styles.mainBodyNumbers}>
-                            <View style={styles.mainBodyNumbersNumber}>
-                                <Text style={styles.mainBodyNumbersNumberTitle}>Риск рейтинг</Text>
-                                {renderPortfolioRisk()}
-                            </View>
-                            <View style={styles.mainBodyNumbersNumber}>
-                                <Text style={styles.mainBodyNumbersNumberTitle}>Риск рейтинг</Text>
-                                <Text style={styles.mainBodyNumbersNumberValue}>RUB - {getPortfolioYield('RUB')}%</Text>
-                                <Text style={styles.mainBodyNumbersNumberValue}>USD - {getPortfolioYield('USD')}%</Text>
-                                <Text style={styles.mainBodyNumbersNumberValue}>EUR - {getPortfolioYield('EUR')}%</Text>
-                            </View>
+                        <View style={styles.mainBodyInfo}>
+                            <Text style={styles.mainBodyInfoTitle}>Риск рейтинг</Text>
+                            {renderPortfolioRisk()}
+                        </View>
+                        <View style={styles.mainBodyInfo}>
+                            <Text style={styles.mainBodyInfoTitle}>Риск рейтинг</Text>
+                            <Text style={styles.mainBodyInfoValue}>RUB - {getPortfolioYield('RUB')}%</Text>
+                            <Text style={styles.mainBodyInfoValue}>USD - {getPortfolioYield('USD')}%</Text>
+                            <Text style={styles.mainBodyInfoValue}>EUR - {getPortfolioYield('EUR')}%</Text>
                         </View>
                     </View>
-                    {qualMode ?
-                        <View style={styles.qualStatus}>
-                            <Text style={styles.qualStatusText}>Режим КИ</Text>
-                        </View>
-                        : null
-                    }
-                    <View style={styles.products}>
-                        <View style={styles.productsHeader}>
-                            <Text style={styles.productsHeaderType}>Тип</Text>
-                            <Text style={styles.productsHeaderCurrency}>Валюта</Text>
-                            <Text style={styles.productsHeaderName}>Название</Text>
-                            <Text style={styles.productsHeaderSum}>Сумма</Text>
-                            <Text style={styles.productsHeaderTitle}>Доля</Text>
-                            <Text style={styles.productsHeaderTitle}>Риск</Text>
-                            <Text style={styles.productsHeaderTitle}>Доход</Text>
-                        </View>
-                        {products.length ? products.map(renderProduct) : null}
+                </View>
+                {qualMode ?
+                    <View style={styles.qualStatus}>
+                        <Text style={styles.qualStatusText}>Режим КИ</Text>
                     </View>
+                    : null
+                }
+                <View style={styles.products}>
+                    <View style={styles.productsHeader}>
+                        <Text style={styles.productsHeaderType}>Тип</Text>
+                        <Text style={styles.productsHeaderTitle}>Валюта</Text>
+                        <Text style={styles.productsHeaderName}>Название</Text>
+                        <Text style={styles.productsHeaderSum}>Сумма</Text>
+                        <Text style={styles.productsHeaderTitle}>Доля</Text>
+                        <Text style={styles.productsHeaderTitle}>Риск</Text>
+                        <Text style={styles.productsHeaderTitle}>Доход</Text>
+                    </View>
+                    {products.length ? products.map(renderProduct) : null}
                 </View>
             </Page>
         </Document>
