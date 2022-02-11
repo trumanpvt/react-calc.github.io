@@ -15,13 +15,18 @@
       color: #262626;
     }
 
-    &__upload-icon {
-      width: 32px;
-      cursor: pointer;
-    }
+    .calculator-header-controls {
 
-    .calculator-header-upload {
-      display: flex;
+
+      &__icon {
+        margin-left: 20px;
+        width: 32px;
+        cursor: pointer;
+      }
+
+      &__upload {
+        display: flex;
+      }
     }
   }
 

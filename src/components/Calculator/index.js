@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 
 import * as xlsx from "xlsx";
 import {Checkbox, Input, message, Modal, Select} from 'antd';
+import {PDFDownloadLink} from '@react-pdf/renderer'
 
 import 'antd/dist/antd.css'
 import './index.scss';
@@ -18,6 +19,8 @@ import {
 
 import uploadIcon from '../../assets/images/upload-file-icon.svg'
 import downloadIcon from '../../assets/images/download-icon.svg'
+import pdfIcon from '../../assets/images/pdf-icon.svg'
+import PdfBriefcase from "../PdfBriefcase";
 
 const {Option} = Select;
 
@@ -148,28 +151,41 @@ function Calculator() {
         })
     }
 
-    const getRiskText = (portfolioRisk) => {
+    const getPortfolioRiskTextAndColorModifier = (portfolioRisk) => {
 
         let colorModifier;
         let riskText;
 
         if (clientRisk === portfolioRisk) {
 
-            colorModifier = 'calculator-main-body-numbers-text_green';
+            colorModifier = 'green';
             riskText = 'Риск соответствует вашему профилю';
         } else if (clientRisk < portfolioRisk) {
 
-            colorModifier = 'calculator-main-body-numbers-text_red';
+            colorModifier = 'red';
             riskText = 'Риск портфеля превышен';
         } else {
 
-            colorModifier = 'calculator-main-body-numbers-text_gray';
+            colorModifier = 'gray';
             riskText = 'Вы недополучаете потенциальный доход';
         }
 
-        return (<div className={`calculator-main-body-numbers-text ${colorModifier}`}>
-            {riskText}
-        </div>);
+        return {
+            colorModifier,
+            riskText
+        };
+    }
+
+    const renderPortfolioRiskText = (portfolioRisk) => {
+
+        const textAndColor = getPortfolioRiskTextAndColorModifier(portfolioRisk);
+
+        return (
+            <div
+                className={`calculator-main-body-numbers-text calculator-main-body-numbers-text_ + ${textAndColor.colorModifier}`}>
+                {textAndColor.riskText}
+            </div>
+        );
     }
 
     const getPortfolioYield = (currency) => {
@@ -237,17 +253,19 @@ function Calculator() {
 
         const portfolioRisk = calcPortfolioRisk();
 
-        return (<div className="calculator-main-body-numbers-number">
-            <div className="calculator-main-body-numbers-number__title">
-                Риск рейтинг
+        return (
+            <div className="calculator-main-body-numbers-number">
+                <div className="calculator-main-body-numbers-number__title">
+                    Риск рейтинг
+                </div>
+                <div className="calculator-main-body-numbers-number__value">
+                    {`${portfolioRisk} из 5`}
+                </div>
+                <div className="calculator-main-body-numbers-text">
+                    {clientRisk ? renderPortfolioRiskText(portfolioRisk) : ''}
+                </div>
             </div>
-            <div className="calculator-main-body-numbers-number__value">
-                {`${portfolioRisk} из 5`}
-            </div>
-            <div className="calculator-main-body-numbers-text">
-                {clientRisk ? getRiskText(portfolioRisk) : ''}
-            </div>
-        </div>);
+        );
     }
 
     const handleRiskChange = (value) => {
@@ -473,124 +491,158 @@ function Calculator() {
         />);
     }
 
-    return (<div className="calculator-container">
-        <div className="calculator-header">
-            <div className="calculator-header__title">
-                Расчет
+    const handleCreatePdf = () => {
+
+        return (
+            <PdfBriefcase
+                totalSum={totalSum}
+                clientRisk={clientRisk}
+                qualMode={qualMode}
+                products={products}
+                calcPortfolioRisk={calcPortfolioRisk}
+                getPortfolioRiskTextAndColorModifier={getPortfolioRiskTextAndColorModifier}
+                getPortfolioYield={getPortfolioYield}
+                getProductPercentage={getProductPercentage}
+                getGradeRiskValue={getGradeRiskValue}
+            />
+        );
+    }
+
+    return (
+        <div className="calculator-container">
+            <div className="calculator-header">
+                <div className="calculator-header__title">
+                    Расчет
+                </div>
+                <div className="calculator-header-controls">
+                    <PDFDownloadLink document={handleCreatePdf()} fileName="briefcase.pdf">
+                        {/*{({ blob, url, loading, error }) => (loading ? 'Loading document...' : 'Download now!')}*/}
+                        <img
+                            className="calculator-header-controls__icon"
+                            src={pdfIcon}
+                            alt={null}
+                            // onClick={handleCreatePdf}
+                        />
+                    </PDFDownloadLink>
+                    {apiKey ? (
+                            <div className="calculator-header-controls__upload">
+                                <Input
+                                    type="file"
+                                    name="upload"
+                                    id="upload"
+                                    onChange={readUploadFile}
+                                />
+                            </div>
+                        )
+                        : <img
+                            className="calculator-header-controls__icon"
+                            src={uploadIcon}
+                            alt={null}
+                            onClick={() => setIsAdminModalVisible(true)}
+                        />
+                    }
+                </div>
             </div>
-            {apiKey ? (
-                    <div className="calculator-header-upload">
+            <div className="calculator-main">
+                <div className="calculator-main__header">Параметры</div>
+                <div className="calculator-main-body">
+                    <div className="calculator-main-body-input">
+                        <div className="calculator-main-body-input__title">Сумма</div>
                         <Input
-                            type="file"
-                            name="upload"
-                            id="upload"
-                            onChange={readUploadFile}
+                            className="calculator-main-body-input__input"
+                            suffix='₽'
+                            type="number"
+                            value={totalSum}
+                            onChange={(e => setTotalSum(e.target.value))}
                         />
                     </div>
-                )
-                : <img className="calculator-header__upload-icon" src={uploadIcon} alt={null}
-                       onClick={() => setIsAdminModalVisible(true)}/>
-            }
-        </div>
-        <div className="calculator-main">
-            <div className="calculator-main__header">Параметры</div>
-            <div className="calculator-main-body">
-                <div className="calculator-main-body-input">
-                    <div className="calculator-main-body-input__title">Сумма</div>
-                    <Input
-                        className="calculator-main-body-input__input"
-                        suffix='₽'
-                        type="number"
-                        value={totalSum}
-                        onChange={(e => setTotalSum(e.target.value))}
-                    />
-                </div>
-                <div className="calculator-main-body-input">
-                    <div className="calculator-main-body-input__title">Инвестпрофиль</div>
-                    <Select
-                        className="calculator-main-body-input__select"
-                        onChange={handleRiskChange}
-                        value={clientRisk}
-                    >
-                        {risks.map((item, index) => {
-                            return <Option key={index} value={item.value}>{item.title}</Option>
-                        })}
-                    </Select>
-                </div>
-                <div className="calculator-main-body-numbers">
-                    {getPortfolioRisk()}
-                    <div className="calculator-main-body-numbers-number">
-                        <div className="calculator-main-body-numbers-number__title">
-                            Доходность
-                        </div>
-                        <div className="calculator-main-body-numbers-number__value">
-                            RUB - {getPortfolioYield('RUB')}%
-                        </div>
-                        <div className="calculator-main-body-numbers-number__value">
-                            USD - {getPortfolioYield('USD')}%
-                        </div>
-                        <div className="calculator-main-body-numbers-number__value">
-                            EUR - {getPortfolioYield('EUR')}%
+                    <div className="calculator-main-body-input">
+                        <div className="calculator-main-body-input__title">Инвестпрофиль</div>
+                        <Select
+                            className="calculator-main-body-input__select"
+                            onChange={handleRiskChange}
+                            value={clientRisk}
+                        >
+                            {risks.map((item, index) => {
+                                return <Option key={index} value={item.value}>{item.title}</Option>
+                            })}
+                        </Select>
+                    </div>
+                    <div className="calculator-main-body-numbers">
+                        {getPortfolioRisk()}
+                        <div className="calculator-main-body-numbers-number">
+                            <div className="calculator-main-body-numbers-number__title">
+                                Доходность
+                            </div>
+                            <div className="calculator-main-body-numbers-number__value">
+                                RUB - {getPortfolioYield('RUB')}%
+                            </div>
+                            <div className="calculator-main-body-numbers-number__value">
+                                USD - {getPortfolioYield('USD')}%
+                            </div>
+                            <div className="calculator-main-body-numbers-number__value">
+                                EUR - {getPortfolioYield('EUR')}%
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div className="calculator-buttons-container">
+                <div className="calculator-buttons" onClick={handleGetProducts}>
+                    <img className="calculator-buttons__icon" src={downloadIcon} alt={null}/>
+                    <div className="calculator-buttons__text">
+                        Загрузить продукты с сервера
+                    </div>
+                </div>
+                <div className="calculator-buttons-checkbox">
+                    <Checkbox checked={qualMode} onChange={() => setQualMode(!qualMode)}>Режим КИ</Checkbox>
+                </div>
+                <div className="calculator-buttons" onClick={handleAddProduct}>
+                    <div className="calculator-buttons__cross"/>
+                    <div className="calculator-buttons__text">
+                        Добавить продукт
+                    </div>
+                </div>
+            </div>
+            <div className="calculator-products">
+                <div className="calculator-products-left">
+                    <div className="calculator-products-left-header">
+                        <div className="calculator-products-left-header__type">Тип</div>
+                        <div className="calculator-products-left-header__currency">Валюта</div>
+                        <div className="calculator-products-left-header__name">Название</div>
+                        <div className="calculator-products-left-header__sum">Сумма</div>
+                    </div>
+                    <div className="calculator-products-left-body">
+                        {products.map(renderProductLeftSide)}
+                    </div>
+                </div>
+                <div className="calculator-products-right">
+                    <div className="calculator-products-right-header">
+                        <div className="calculator-products-right-header__title">Доля</div>
+                        <div className="calculator-products-right-header__title">Риск</div>
+                        <div className="calculator-products-right-header__title">Доход</div>
+                    </div>
+                    <div className="calculator-products-right-body">
+                        {products.map(renderProductRightSide)}
+                    </div>
+                </div>
+                <div className="calculator-products-remove-products">
+                    {products.map(renderProductRemoveBtn)}
+                </div>
+            </div>
+            <Modal visible={isUserModalVisible || isAdminModalVisible}
+                   onOk={isUserModalVisible ? handleOkUserPassword : handleOkAdminPassword}
+                   onCancel={isUserModalVisible ? () => handleCloseModal('user') : () => handleCloseModal('admin')}>
+                <div className="calculator-products-right-header__title">Введите пароль</div>
+                <Input
+                    className="calculator-main-body-input__input"
+                    value={isUserModalVisible ? userPassword : adminPassword}
+                    type='password'
+                    onChange={isUserModalVisible ? (e => setUserPassword(e.target.value)) : (e => setAdminPassword(e.target.value))}
+                />
+            </Modal>
         </div>
-        <div className="calculator-buttons-container">
-            <div className="calculator-buttons" onClick={handleGetProducts}>
-                <img className="calculator-buttons__icon" src={downloadIcon} alt={null}/>
-                <div className="calculator-buttons__text">
-                    Загрузить продукты с сервера
-                </div>
-            </div>
-            <div className="calculator-buttons-checkbox">
-                <Checkbox checked={qualMode} onChange={() => setQualMode(!qualMode)}>Режим КИ</Checkbox>
-            </div>
-            <div className="calculator-buttons" onClick={handleAddProduct}>
-                <div className="calculator-buttons__cross"/>
-                <div className="calculator-buttons__text">
-                    Добавить продукт
-                </div>
-            </div>
-        </div>
-        <div className="calculator-products">
-            <div className="calculator-products-left">
-                <div className="calculator-products-left-header">
-                    <div className="calculator-products-left-header__type">Тип</div>
-                    <div className="calculator-products-left-header__currency">Валюта</div>
-                    <div className="calculator-products-left-header__name">Название</div>
-                    <div className="calculator-products-left-header__sum">Сумма</div>
-                </div>
-                <div className="calculator-products-left-body">
-                    {products.map(renderProductLeftSide)}
-                </div>
-            </div>
-            <div className="calculator-products-right">
-                <div className="calculator-products-right-header">
-                    <div className="calculator-products-right-header__title">Доля</div>
-                    <div className="calculator-products-right-header__title">Риск</div>
-                    <div className="calculator-products-right-header__title">Доход</div>
-                </div>
-                <div className="calculator-products-right-body">
-                    {products.map(renderProductRightSide)}
-                </div>
-            </div>
-            <div className="calculator-products-remove-products">
-                {products.map(renderProductRemoveBtn)}
-            </div>
-        </div>
-        <Modal visible={isUserModalVisible || isAdminModalVisible}
-               onOk={isUserModalVisible ? handleOkUserPassword : handleOkAdminPassword}
-               onCancel={isUserModalVisible ? () => handleCloseModal('user') : () => handleCloseModal('admin')}>
-            <div className="calculator-products-right-header__title">Введите пароль</div>
-            <Input
-                className="calculator-main-body-input__input"
-                value={isUserModalVisible ? userPassword : adminPassword}
-                type='password'
-                onChange={isUserModalVisible ? (e => setUserPassword(e.target.value)) : (e => setAdminPassword(e.target.value))}
-            />
-        </Modal>
-    </div>);
+    );
 }
 
 export default Calculator;
