@@ -45,23 +45,6 @@ function PdfBriefcase({
         );
     }
 
-    // const formatProductType = (type) => {
-    //
-    //     return (
-    //         <View style={styles.productsProductValueContainer}>
-    //             {type ? type.split('.').map(item => {
-    //                     return (
-    //                         <Text style={styles.productsProductValue}>
-    //                             {item}
-    //                         </Text>
-    //                     );
-    //                 })
-    //                 : null
-    //             }
-    //         </View>
-    //     );
-    // }
-
     const renderProduct = (product, index) => {
 
         const productCurrency = currencies.find(currency => currency.name === product.currency);
