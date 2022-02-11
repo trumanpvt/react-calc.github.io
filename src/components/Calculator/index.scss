@@ -16,12 +16,16 @@
     }
 
     .calculator-header-controls {
-
+      display: flex;
+      align-items: center;
 
       &__icon {
-        margin-left: 20px;
         width: 32px;
         cursor: pointer;
+
+        &_pdf {
+          margin-right: 20px;
+        }
       }
 
       &__upload {

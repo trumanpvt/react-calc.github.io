@@ -518,7 +518,7 @@ function Calculator() {
                 <div className="calculator-header-controls">
                     <PDFDownloadLink document={handleCreatePdf()} fileName="briefcase.pdf">
                         <img
-                            className="calculator-header-controls__icon"
+                            className="calculator-header-controls__icon calculator-header-controls__icon_pdf"
                             src={pdfIcon}
                             alt=''
                         />
