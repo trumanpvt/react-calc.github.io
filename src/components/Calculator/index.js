@@ -89,6 +89,7 @@ function Calculator() {
         const key = decryptKey(adminPassword, 'admin');
 
         if (!key) {
+
             errorMessage('Неверный пароль');
             return null;
         }
