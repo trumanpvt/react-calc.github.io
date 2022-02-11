@@ -1,5 +1,3 @@
-// export const apiToken = process.env.REACT_APP_GIT_API_TOKEN;
-
 export const currencies = [
     {
         name: 'RUB',
