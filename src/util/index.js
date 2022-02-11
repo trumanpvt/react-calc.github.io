@@ -1,5 +1,6 @@
 import {Octokit} from "@octokit/core";
 import CryptoJS from "crypto-js";
+import {adminToken, userToken} from "../consts";
 
 const utf8_to_b64 = (str) => {
     return window.btoa(unescape(encodeURIComponent(str)));
@@ -87,10 +88,10 @@ export const decryptKey = (password, mode) => {
 
     if (mode === 'user') {
 
-        encryptedKey = process.env.REACT_APP_GIT_API_TOKEN_GET;
+        encryptedKey = userToken;
     } else {
 
-        encryptedKey = process.env.REACT_APP_GIT_API_TOKEN;
+        encryptedKey = adminToken;
     }
 
     let apiKey;
