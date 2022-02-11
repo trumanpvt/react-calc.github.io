@@ -520,7 +520,7 @@ function Calculator() {
                         <img
                             className="calculator-header-controls__icon"
                             src={pdfIcon}
-                            alt={null}
+                            alt=''
                         />
                     </PDFDownloadLink>
                     {apiKey ? (
@@ -536,7 +536,7 @@ function Calculator() {
                         : <img
                             className="calculator-header-controls__icon"
                             src={uploadIcon}
-                            alt={null}
+                            alt=''
                             onClick={() => setIsAdminModalVisible(true)}
                         />
                     }
@@ -588,7 +588,7 @@ function Calculator() {
             </div>
             <div className="calculator-buttons-container">
                 <div className="calculator-buttons" onClick={handleGetProducts}>
-                    <img className="calculator-buttons__icon" src={downloadIcon} alt={null}/>
+                    <img className="calculator-buttons__icon" src={downloadIcon} alt=''/>
                     <div className="calculator-buttons__text">
                         Загрузить продукты с сервера
                     </div>

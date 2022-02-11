@@ -1,6 +1,6 @@
 import {StyleSheet} from '@react-pdf/renderer'
 
-export default () => {
+const styles = () => {
     return StyleSheet.create({
         page: {
             flexDirection: 'column',
@@ -110,3 +110,4 @@ export default () => {
     })
 }
 
+export default styles;
