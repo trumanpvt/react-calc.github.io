@@ -451,7 +451,6 @@ function Calculator() {
 
     const renderProductRightSide = (product, index) => {
 
-        console.log(product)
         return (
             <div className="calculator-products-right-body-product" key={index}>
                 <div className="calculator-products-right-body-product__value">
