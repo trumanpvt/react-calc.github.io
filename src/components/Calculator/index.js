@@ -314,9 +314,9 @@ function Calculator() {
 
         const index = productsCopy.findIndex(item => item.guid === product.guid);
 
-        if (field === 'product_id') {
+        if (field === 'name') {
 
-            const productFromList = productList.find(item => item.product_id === value);
+            const productFromList = productList.find(item => item.name === value);
 
             productsCopy[index] = {
                 ...productsCopy[index], ...productFromList, [field]: value,
@@ -399,14 +399,14 @@ function Calculator() {
                 </Select>
                 <Select
                     className="calculator-products-left-body-product__name"
-                    onChange={(value) => handleProductChange(value, product, 'product_id')}
+                    onChange={(value) => handleProductChange(value, product, 'name')}
                     dropdownMatchSelectWidth={false}
                 >
                     {products.map((item, index) => {
 
                         return (<Option
                             key={index}
-                            value={item.product_id}
+                            value={item.name}
                         >
                             {item.name} {(item.isin && item.isin !== 'NULL') || ''}
                         </Option>)
@@ -451,6 +451,7 @@ function Calculator() {
 
     const renderProductRightSide = (product, index) => {
 
+        console.log(product)
         return (
             <div className="calculator-products-right-body-product" key={index}>
                 <div className="calculator-products-right-body-product__value">
