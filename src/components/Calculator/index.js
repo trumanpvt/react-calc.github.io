@@ -344,7 +344,7 @@ function Calculator() {
 
         if (!qualMode) {
 
-            products = productList.filter(item => !item['qual']);
+            products = productList.filter(item => item['qual'] !== 1);
         } else {
 
             products = productList;
