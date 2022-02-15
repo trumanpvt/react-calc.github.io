@@ -457,7 +457,7 @@ function Calculator() {
                     {product['sum'] && totalSum && product['currency'] ? getProductPercentage(product['sum'], product['currency'], totalSum) + '%' : ''}
                 </div>
                 <div className="calculator-products-right-body-product__value">
-                    {product.stress_scen ? getGradeRiskValue(Math.abs(product.stress_scen * 100)) : ''}
+                    {Math.round(product.product_risk}
                 </div>
                 <div className="calculator-products-right-body-product__value">
                     {product.neutr_scen ? (product.neutr_scen * 100).toFixed(2) + '%' : ''}
