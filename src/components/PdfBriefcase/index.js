@@ -71,7 +71,7 @@ function PdfBriefcase({
                     {product['sum'] && totalSum && product['currency'] ? getProductPercentage(product['sum'], product['currency'], totalSum) + '%' : ''}
                 </Text>
                 <Text style={styles.productsProductValue}>
-                    {product['stress_scen'] ? getGradeRiskValue(Math.abs(product['stress_scen'] * 100)) : ''}
+                    {Math.round(product.product_risk)}
                 </Text>
                 <Text style={styles.productsProductValue}>
                     {product['neutr_scen'] ? (product['neutr_scen'] * 100).toFixed(2) + '%' : ''}
