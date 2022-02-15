@@ -16,7 +16,7 @@ function PdfBriefcase({
                           getPortfolioRiskTextAndColorModifier,
                           getPortfolioYield,
                           getProductPercentage,
-                          getGradeRiskValue,
+                          // getGradeRiskValue,
                       }) {
 
     Font.register({
@@ -71,7 +71,7 @@ function PdfBriefcase({
                     {product['sum'] && totalSum && product['currency'] ? getProductPercentage(product['sum'], product['currency'], totalSum) + '%' : ''}
                 </Text>
                 <Text style={styles.productsProductValue}>
-                    {Math.round(product.product_risk)}
+                    {product['product_risk_amt'] ? Math.round(product['product_risk_amt']) : ''}
                 </Text>
                 <Text style={styles.productsProductValue}>
                     {product['neutr_scen'] ? (product['neutr_scen'] * 100).toFixed(2) + '%' : ''}

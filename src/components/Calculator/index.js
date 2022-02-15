@@ -457,10 +457,10 @@ function Calculator() {
                     {product['sum'] && totalSum && product['currency'] ? getProductPercentage(product['sum'], product['currency'], totalSum) + '%' : ''}
                 </div>
                 <div className="calculator-products-right-body-product__value">
-                    {Math.round(product.product_risk)}
+                    {product['product_risk_amt'] ? Math.round(product['product_risk_amt']) : ''}
                 </div>
                 <div className="calculator-products-right-body-product__value">
-                    {product.neutr_scen ? (product.neutr_scen * 100).toFixed(2) + '%' : ''}
+                    {product['neutr_scen'] ? (product['neutr_scen'] * 100).toFixed(2) + '%' : ''}
                 </div>
             </div>
         );
@@ -504,7 +504,7 @@ function Calculator() {
                 getPortfolioRiskTextAndColorModifier={getPortfolioRiskTextAndColorModifier}
                 getPortfolioYield={getPortfolioYield}
                 getProductPercentage={getProductPercentage}
-                getGradeRiskValue={getGradeRiskValue}
+                // getGradeRiskValue={getGradeRiskValue}
             />
         );
     }
